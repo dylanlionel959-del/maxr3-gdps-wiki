@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maxr3 GDPS Wiki</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="wiki-container">
+        <h1>Maxr3 GDPS Wiki</h1>
+        <p class="wiki-description">Official encyclopedia generated automatically from the database.</p>
+        
+        <!-- Search bar -->
+        <div class="search-bar-container">
+            <input type="text" id="search-input" placeholder="Search articles, topics or keywords..." onkeyup="filterArticles()">
+            <button onclick="filterArticles()">Search</button>
+        </div>
+
+        <!-- Container where articles load -->
+        <div id="articles-wrapper">
+            <p>Scanning articles and loading database...</p>
+        </div>
+    </div>
+
+    <script>
+        let allArticlesData = [];
+
+        async function loadWikiArticles() {
+            try {
+                const manifestRes = await fetch('db/manifest.json');
+                if (!manifestRes.ok) throw new Error("Could not load manifest.");
+                
+                const manifest = await manifestRes.json();
+                const wrapper = document.getElementById('articles-wrapper');
+                wrapper.innerHTML = ""; 
+
+                allArticlesData = [];
+
+                for (const filename of manifest) {
+                    try {
+                        const articleRes = await fetch(`db/${filename}`);
+                        if (!articleRes.ok) continue;
+                        const article = await articleRes.json();
+                        
+                        allArticlesData.push(article);
+
+                        const articleSection = document.createElement('section');
+                        articleSection.className = 'wiki-article-box';
+                        articleSection.setAttribute('data-title', article.title.toLowerCase());
+                        articleSection.setAttribute('data-desc', article.description.toLowerCase());
+                        articleSection.setAttribute('data-content', article.content.toLowerCase());
+
+                        let infoboxHTML = '';
+                        if (article.infobox) {
+                            let imageHTML = '';
+                            if (article.infobox.image && article.infobox.image.status === 'on' && article.infobox.image.url) {
+                                imageHTML = `
+                                    <tr>
+                                        <td colspan="2" style="text-align: center;">
+                                            <img src="${article.infobox.image.url}" alt="${article.title}">
+                                            <br><small>${article.infobox.image.caption || ''}</small>
+                                        </td>
+                                    </tr>
+                                `;
+                            }
+
+                            let rowsHTML = '';
+                            if (article.infobox.data) {
+                                article.infobox.data.forEach(row => {
+                                    rowsHTML += `
+                                        <tr>
+                                            <th>${row.label}</th>
+                                            <td>${row.value}</td>
+                                        </tr>
+                                    `;
+                                });
+                            }
+
+                            infoboxHTML = `
+                                <aside class="infobox">
+                                    <table>
+                                        ${imageHTML}
+                                        ${rowsHTML}
+                                    </table>
+                                </aside>
+                            `;
+                        }
+
+                        articleSection.innerHTML = `
+                            ${infoboxHTML}
+                            <h2 style="font-size: 1.8rem; margin-top: 0;">${article.title}</h2>
+                            <p class="wiki-description">${article.description}</p>
+                            <div class="wiki-content">
+                                ${article.content}
+                            </div>
+                        `;
+
+                        wrapper.appendChild(articleSection);
+
+                    } catch (err) {
+                        console.error(`Error loading ${filename}:`, err);
+                    }
+                }
+
+            } catch (error) {
+                console.error("General error:", error);
+                document.getElementById('articles-wrapper').innerHTML = "<p>Error scanning database articles.</p>";
+            }
+        }
+
+        function filterArticles() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            const sections = document.querySelectorAll('.wiki-article-box');
+
+            sections.forEach(section => {
+                const title = section.getAttribute('data-title');
+                const desc = section.getAttribute('data-desc');
+                const content = section.getAttribute('data-content');
+
+                if (title.includes(query) || desc.includes(query) || content.includes(query)) {
+                    section.style.display = "block";
+                } else {
+                    section.style.display = "none";
+                }
+            });
+        }
+
+        loadWikiArticles();
+    </script>
+</body>
+</html>
