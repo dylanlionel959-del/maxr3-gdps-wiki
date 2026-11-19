@@ -1,0 +1,42 @@
+{
+  "id": "maxr3",
+  "title": "Maxr3",
+  "summary": "<b>Maxr3</b> is the founder, lead developer, and head administrator of <b>Maxr3 GDPS</b>. He is also an active level creator, macro developer, and verifier on the server.",
+  "infobox": {
+    "type": "player",
+    "title": "Maxr3",
+    "caption": "Founder and Lead Administrator of Maxr3 GDPS",
+    "groups": [
+      {
+        "header": "General Information",
+        "rows": [
+          {
+            "label": "Role",
+            "value": "<span class='px-1.5 py-0.5 bg-red-100 text-red-800 border border-red-300 rounded text-[11px] font-bold'>Owner / Admin</span>"
+          },
+          { "label": "Active Since", "value": "2026" },
+          { "label": "Country", "value": "Venezuela" }
+        ]
+      },
+      {
+        "header": "GDPS Activity",
+        "rows": [
+          { "label": "Notable Levels", "value": "<a href='#pink-wave'>Pink Wave</a>" },
+          { "label": "Hardest", "value": "<a href='#pink-wave'>Pink Wave</a>" },
+          { "label": "Specialty", "value": "Wave gameplay, high-CPS timing, 2.2 triggers" }
+        ]
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "History",
+      "content": "<p>Maxr3 launched <b>Maxr3 GDPS</b> in 2026 running on Geometry Dash version 2.208. Alongside managing the server infrastructure, he developed the companion <b>Maxr3 GDPS Demon List</b> platform to track legitimate completions and verified records.</p>"
+    },
+    {
+      "heading": "Created Levels",
+      "content": "<ul><li><b><a href='#pink-wave'>Pink Wave</a></b> – Verified and published on Maxr3 GDPS.</li></ul>"
+    }
+  ],
+  "categories": ["Players", "Server Staff", "Creators"]
+}
