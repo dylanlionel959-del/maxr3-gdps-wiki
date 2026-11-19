@@ -1,0 +1,18 @@
+{
+  "id": "main-page",
+  "title": "Main Page",
+  "subtitle": "From Maxr3 GDPS Wiki, the free encyclopedia",
+  "hideToc": true,
+  "summary": "<div class='border border-[#a2a9b1] bg-[#f8f9fa] p-4 mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'><div><div class='font-serifWiki text-2xl text-black'>Welcome to <b>Maxr3 GDPS Wiki</b>,</div><div class='text-xs text-[#54595d] mt-1'>the collaborative encyclopedia dedicated to the <b>Maxr3 Geometry Dash Private Server</b>.</div></div><div class='text-left sm:text-right text-xs text-[#54595d] space-y-0.5'><div>GDPS Version: <b>{{GDPS_VERSION}}</b></div><div>Wiki Engine: <code>{{WIKI_VERSION}}</code></div><div>Host: <code>mr3gdps1938.ps.fhgdps.com</code></div></div></div><div class='grid grid-cols-1 md:grid-cols-2 gap-4 mb-2'><div class='border border-[#a3bfb1] bg-[#f5fffa] p-3'><h3 class='bg-[#cef2e0] border border-[#a3bfb1] px-2.5 py-1 font-bold text-sm mb-2'>Featured Article</h3><p class='text-xs leading-relaxed mb-0'><b><a href='#pink-wave'>Pink Wave</a></b> is a custom Hard Demon level created and verified by <a href='#maxr3'>Maxr3</a> on Maxr3 GDPS. Featuring fast-paced mini-wave corridors and custom 2.2 camera triggers, it serves as a benchmark for high-CPS gameplay on the server.</p></div><div class='border border-[#a3b0bf] bg-[#f5faff] p-3'><h3 class='bg-[#cedff2] border border-[#a3b0bf] px-2.5 py-1 font-bold text-sm mb-2'>Quick Navigation</h3><ul class='text-xs space-y-1 mb-0'><li><b>Players & Staff:</b> <a href='#maxr3'>Maxr3</a></li><li><b>Rated Levels:</b> <a href='#pink-wave'>Pink Wave</a></li><li><b>Policies:</b> <a href='#server-rules'>Server Rules & Rating Standards</a></li></ul></div></div>",
+  "sections": [
+    {
+      "heading": "About Maxr3 GDPS",
+      "content": "<p><b>Maxr3 GDPS</b> is a custom Geometry Dash Private Server operating on game version <b>2.208</b>. The server focuses on custom level creation, active moderation, and competitive verification tracked through the official <b>Maxr3 GDPS Demon List</b>.</p>"
+    },
+    {
+      "heading": "Wiki Changelog & Architecture",
+      "content": "<p>Running on <b>Wiki Engine {{WIKI_VERSION}}</b>, all encyclopedia entries are stored as structured JSON schemas supporting standardized Infobox templates for levels, players, updates, and server guidelines.</p>"
+    }
+  ],
+  "categories": ["Maxr3 GDPS", "Main Portal"]
+}
