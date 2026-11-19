@@ -1,0 +1,33 @@
+{
+  "id": "test",
+  "title": "Test",
+  "summary": "Hi",
+  "infobox": {
+    "type": "level",
+    "title": "Test",
+    "groups": [
+      {
+        "header": "Article Information",
+        "rows": [
+          {
+            "label": "Article ID",
+            "value": "<code>test</code>"
+          },
+          {
+            "label": "Type",
+            "value": "Level"
+          }
+        ]
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Overview",
+      "content": "Hi"
+    }
+  ],
+  "categories": [
+    "Maxr3 GDPS"
+  ]
+}
