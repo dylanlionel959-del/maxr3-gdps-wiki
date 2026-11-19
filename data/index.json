@@ -1,0 +1,27 @@
+{
+  "wikiVersion": "v1.0.0",
+  "lastUpdated": "November 2026",
+  "gdpsVersion": "2.208 / 2.2081",
+  "articles": [
+    {
+      "id": "main-page",
+      "title": "Main Page",
+      "description": "Welcome portal to the official Maxr3 GDPS Wiki."
+    },
+    {
+      "id": "maxr3",
+      "title": "Maxr3",
+      "description": "Founder, lead developer, and creator on Maxr3 GDPS."
+    },
+    {
+      "id": "pink-wave",
+      "title": "Pink Wave",
+      "description": "Custom Hard Demon level created and verified by Maxr3."
+    },
+    {
+      "id": "server-rules",
+      "title": "Server Rules",
+      "description": "Official level rating guidelines, Demon List rules, and community standards."
+    }
+  ]
+}
