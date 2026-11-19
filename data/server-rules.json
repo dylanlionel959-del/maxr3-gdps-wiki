@@ -1,0 +1,30 @@
+{
+  "id": "server-rules",
+  "title": "Server Rules",
+  "summary": "This page outlines the official guidelines for uploading levels, submitting Demon List records, and participating in the <b>Maxr3 GDPS</b> community.",
+  "infobox": {
+    "type": "rules",
+    "title": "Official Policy",
+    "groups": [
+      {
+        "header": "Policy Details",
+        "rows": [
+          { "label": "Applies To", "value": "All Players & Creators" },
+          { "label": "Enforced By", "value": "Server Moderators & Admins" },
+          { "label": "Status", "value": "Active" }
+        ]
+      }
+    ]
+  },
+  "sections": [
+    {
+      "heading": "Level Uploading & Rating",
+      "content": "<ul><li>Levels must be legitimately verified without noclip, speedhacks, or macro bots.</li><li>Copied or stolen levels from official servers without significant transformation will not be rated.</li></ul>"
+    },
+    {
+      "heading": "Demon List Submissions",
+      "content": "<ul><li>All Demon List completions require raw footage with audible clicks or a visible cheat indicator.</li><li>CBF (Click Between Frames) and physics bypass rules follow the current Demon List leaderboard standards.</li></ul>"
+    }
+  ],
+  "categories": ["Policies", "Maxr3 GDPS"]
+}
