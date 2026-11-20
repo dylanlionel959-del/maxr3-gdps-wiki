@@ -6,7 +6,15 @@ let wikiMeta = {
   gdpsVersion: '2.208 / 2.2081'
 };
 
-// Aplicar versión actual en Sidebar, Footer y Title
+// Reemplazar variables dinámicas generadas por los workflows ({{WIKI_VERSION}}, {{GDPS_VERSION}})
+function interpolateMeta(text) {
+  return String(text || '')
+    .replace(/\{\{WIKI_VERSION\}\}/g, wikiMeta.wikiVersion)
+    .replace(/\{\{GDPS_VERSION\}\}/g, wikiMeta.gdpsVersion)
+    .replace(/\{\{LAST_UPDATED\}\}/g, wikiMeta.lastUpdated);
+}
+
+// Aplicar versión actual en Sidebar y Footer
 function applyWikiVersion() {
   const sidebarVer = document.getElementById('wiki-version-sidebar');
   const footerVer = document.getElementById('wiki-version-footer');
@@ -16,7 +24,7 @@ function applyWikiVersion() {
   }
 }
 
-// Formatear un slug como "pink-wave" en "Pink Wave" si falta en index.json
+// Formatear slug (ej. "pink-wave" -> "Pink Wave")
 function formatTitleFromId(id) {
   return String(id)
     .split('-')
@@ -25,7 +33,7 @@ function formatTitleFromId(id) {
     .join(' ');
 }
 
-// Inicializar Wiki, cargar versión, índice y data/articles.json
+// Inicializar Wiki, cargar data/index.json y data/articles.json
 async function initWiki() {
   applyWikiVersion();
 
@@ -34,7 +42,7 @@ async function initWiki() {
     if (res.ok) {
       const data = await res.json();
       wikiIndex = Array.isArray(data.articles) ? data.articles : [];
-      wikiMeta.wikiVersion = data.wikiVersion || '26.11';
+      wikiMeta.wikiVersion = data.wikiVersion || wikiMeta.wikiVersion;
       wikiMeta.lastUpdated = data.lastUpdated || wikiMeta.lastUpdated;
       wikiMeta.gdpsVersion = data.gdpsVersion || wikiMeta.gdpsVersion;
       applyWikiVersion();
@@ -43,7 +51,7 @@ async function initWiki() {
     console.warn('Could not load data/index.json:', err);
   }
 
-  // Leer data/articles.json con la lista de IDs disponibles
+  // Sincronizar con data/articles.json modificado por los workflows
   try {
     const articlesRes = await fetch('data/articles.json', { cache: 'no-store' });
     if (articlesRes.ok) {
@@ -108,7 +116,7 @@ async function loadArticle(hash) {
       ? `Maxr3 GDPS Wiki (${wikiMeta.wikiVersion})`
       : `${data.title} - Maxr3 GDPS Wiki`;
 
-    if (titleEl) titleEl.textContent = data.title || cleanId;
+    if (titleEl) titleEl.textContent = data.title || formatTitleFromId(cleanId);
     if (subtitleEl) {
       subtitleEl.textContent = data.subtitle || 'From Maxr3 GDPS Wiki, the free encyclopedia';
     }
@@ -124,11 +132,9 @@ async function loadArticle(hash) {
       }
     }
 
-    const processedSummary = (data.summary || '')
-      .replace(/\{\{WIKI_VERSION\}\}/g, wikiMeta.wikiVersion)
-      .replace(/\{\{GDPS_VERSION\}\}/g, wikiMeta.gdpsVersion);
-
-    if (summaryEl) summaryEl.innerHTML = processedSummary;
+    if (summaryEl) {
+      summaryEl.innerHTML = interpolateMeta(data.summary);
+    }
 
     renderInfobox(data.infobox);
     renderSections(data.sections, data.hideToc);
@@ -144,7 +150,7 @@ async function loadArticle(hash) {
         <div class="border border-wiki-border bg-wiki-infoboxBg p-4">
           <p><b>Could not load article <code>${cleanId}</code>.</b></p>
           <p class="text-xs text-wiki-muted">Details: ${error.message}</p>
-          <p class="mb-0">Make sure <code>data/${cleanId}.json</code> exists and is valid JSON. <a href="#main-page">Return to Main Page</a>.</p>
+          <p class="mb-0">Run one of the GitHub Actions workflows to generate <code>data/${cleanId}.json</code>, or <a href="#main-page">return to Main Page</a>.</p>
         </div>`;
     }
     const infobox = document.getElementById('infobox');
@@ -158,7 +164,7 @@ async function loadArticle(hash) {
   }
 }
 
-// Renderizar Infobox dinámica estilo Wikipedia (con soporte de imagen desde JSON)
+// Renderizar Infobox dinámica para los 4 tipos de workflows (player, level, rules, update)
 function renderInfobox(infoboxData) {
   const infobox = document.getElementById('infobox');
   const infoboxTitle = document.getElementById('infobox-title');
@@ -190,7 +196,7 @@ function renderInfobox(infoboxData) {
     const safeImage = String(infoboxData.image).trim();
     const safeAlt = String(infoboxData.title || 'Infobox image').replace(/"/g, '&quot;');
     const captionHtml = infoboxData.caption
-      ? `<div class="text-[11px] text-wiki-muted mt-1.5 leading-tight">${infoboxData.caption}</div>`
+      ? `<div class="text-[11px] text-wiki-muted mt-1.5 leading-tight">${interpolateMeta(infoboxData.caption)}</div>`
       : '';
 
     infoboxBody.innerHTML += `
@@ -224,7 +230,7 @@ function renderInfobox(infoboxData) {
       infoboxBody.innerHTML += `
         <tr class="border-b border-gray-200">
           <th class="text-left py-1.5 px-2 font-bold align-top w-[38%] bg-wiki-infoboxLabel text-wiki-text">${row.label}</th>
-          <td class="py-1.5 px-2 align-top bg-wiki-infoboxBg">${row.value}</td>
+          <td class="py-1.5 px-2 align-top bg-wiki-infoboxBg">${interpolateMeta(row.value)}</td>
         </tr>`;
     });
   });
@@ -267,7 +273,7 @@ function renderSections(sections, hideToc = false) {
         <h2 class="font-serifWiki text-xl font-normal border-b border-wiki-border pb-0.5 mb-2.5 text-black">
           ${sec.heading}
         </h2>
-        <div>${sec.content}</div>
+        <div>${interpolateMeta(sec.content)}</div>
       </section>`;
   });
 }
