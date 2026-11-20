@@ -1,0 +1,238 @@
+name: Wiki - Main Page
+
+on:
+  workflow_dispatch:
+    inputs:
+      wiki_version:
+        description: 'Wiki version'
+        required: true
+        default: '26.11'
+        type: string
+      gdps_version:
+        description: 'GDPS version displayed on Main Page'
+        required: true
+        default: '2.208 / 2.2081'
+        type: string
+      last_updated:
+        description: 'Last updated label (e.g., November 2026)'
+        required: true
+        default: 'November 2026'
+        type: string
+      featured_article_id:
+        description: 'Featured article ID (e.g., pink-wave)'
+        required: true
+        default: 'pink-wave'
+        type: string
+      featured_article_title:
+        description: 'Featured article title (e.g., Pink Wave)'
+        required: true
+        default: 'Pink Wave'
+        type: string
+      featured_text:
+        description: 'Featured article blurb (HTML allowed)'
+        required: true
+        type: string
+      about_content:
+        description: 'About Maxr3 GDPS section content (HTML allowed)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  update-main-page:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Installing Text Editor
+        run: |
+          echo "Installing Text Editor..."
+          sleep 4
+
+      - name: Moving Text Editor files
+        run: |
+          echo "Moving Text Editor files..."
+          sleep 7
+
+      - name: Opening Program
+        run: |
+          echo "Opening Program..."
+          sleep 2
+
+      - name: Providing file
+        run: |
+          echo "Providing file..."
+
+      - name: Creating File
+        run: |
+          echo "Creating File..."
+          mkdir -p temp_article
+          sleep 4.1
+
+      - name: Filling in
+        env:
+          WIKI_VERSION: ${{ inputs.wiki_version }}
+          GDPS_VERSION: ${{ inputs.gdps_version }}
+          LAST_UPDATED: ${{ inputs.last_updated }}
+          FEATURED_ID: ${{ inputs.featured_article_id }}
+          FEATURED_TITLE: ${{ inputs.featured_article_title }}
+          FEATURED_TEXT: ${{ inputs.featured_text }}
+          ABOUT_CONTENT: ${{ inputs.about_content }}
+        run: |
+          echo "Filling in Main Page data..."
+          python3 - << 'EOF'
+          import json
+          import os
+
+          feat_id = os.environ["FEATURED_ID"].strip() or "pink-wave"
+          feat_title = os.environ["FEATURED_TITLE"].strip() or "Pink Wave"
+          feat_text = os.environ["FEATURED_TEXT"].strip()
+          about_content = os.environ["ABOUT_CONTENT"].strip()
+
+          summary_html = (
+              "<div class='border border-[#a2a9b1] bg-[#f8f9fa] p-4 mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>"
+              "<div>"
+              "<div class='font-serifWiki text-2xl text-black'>Welcome to <b>Maxr3 GDPS Wiki</b>,</div>"
+              "<div class='text-xs text-[#54595d] mt-1'>the collaborative encyclopedia dedicated to the <b>Maxr3 Geometry Dash Private Server</b>.</div>"
+              "</div>"
+              "<div class='text-left sm:text-right text-xs text-[#54595d] space-y-0.5'>"
+              "<div>GDPS Version: <b>{{GDPS_VERSION}}</b></div>"
+              "<div>Wiki Engine: <code>{{WIKI_VERSION}}</code></div>"
+              "<div>Host: <code>mr3gdps1938.ps.fhgdps.com</code></div>"
+              "</div>"
+              "</div>"
+              "<div class='grid grid-cols-1 md:grid-cols-2 gap-4 mb-2'>"
+              "<div class='border border-[#a3bfb1] bg-[#f5fffa] p-3'>"
+              "<h3 class='bg-[#cef2e0] border border-[#a3bfb1] px-2.5 py-1 font-bold text-sm mb-2'>Featured Article</h3>"
+              f"<p class='text-xs leading-relaxed mb-0'><b><a href='#{feat_id}'>{feat_title}</a></b> — {feat_text}</p>"
+              "</div>"
+              "<div class='border border-[#a3b0bf] bg-[#f5faff] p-3'>"
+              "<h3 class='bg-[#cedff2] border border-[#a3b0bf] px-2.5 py-1 font-bold text-sm mb-2'>Quick Navigation</h3>"
+              "<ul class='text-xs space-y-1 mb-0'>"
+              "<li><b>Players &amp; Staff:</b> <a href='#maxr3'>Maxr3</a></li>"
+              f"<li><b>Featured Level:</b> <a href='#{feat_id}'>{feat_title}</a></li>"
+              "<li><b>Policies:</b> <a href='#server-rules'>Server Rules</a></li>"
+              "</ul>"
+              "</div>"
+              "</div>"
+          )
+
+          main_page = {
+              "id": "main-page",
+              "title": "Main Page",
+              "subtitle": "From Maxr3 GDPS Wiki, the free encyclopedia",
+              "hideToc": True,
+              "summary": summary_html,
+              "sections": [
+                  {
+                      "heading": "About Maxr3 GDPS",
+                      "content": about_content
+                  },
+                  {
+                      "heading": "Wiki Version & Architecture",
+                      "content": "<p>Running on Wiki Engine <b>{{WIKI_VERSION}}</b> (GDPS <b>{{GDPS_VERSION}}</b>), articles are powered by JSON files and Infobox templates.</p>"
+                  }
+              ],
+              "categories": ["Maxr3 GDPS", "Main Portal"]
+          }
+
+          with open("temp_article/main-page.json", "w", encoding="utf-8") as f:
+              json.dump(main_page, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+          EOF
+          sleep 16
+
+      - name: Saving file
+        run: |
+          echo "Saving file..."
+          sleep 4.5
+
+      - name: Entering the Repository
+        uses: actions/checkout@v4
+
+      - name: Repository connection delay
+        run: sleep 2
+
+      - name: Checking data folder for read and write permissions
+        run: |
+          mkdir -p data
+          test -r data && test -w data
+          echo "Read and write permissions verified on data/"
+
+      - name: Uploading file to /data
+        run: |
+          cp -f temp_article/main-page.json data/main-page.json
+          rm -rf temp_article
+          sleep 5
+
+      - name: Modifying articles.json
+        env:
+          WIKI_VERSION: ${{ inputs.wiki_version }}
+          GDPS_VERSION: ${{ inputs.gdps_version }}
+          LAST_UPDATED: ${{ inputs.last_updated }}
+        run: |
+          python3 - << 'EOF'
+          import json
+          import os
+
+          wiki_version = os.environ["WIKI_VERSION"].strip() or "26.11"
+          gdps_version = os.environ["GDPS_VERSION"].strip() or "2.208 / 2.2081"
+          last_updated = os.environ["LAST_UPDATED"].strip() or "November 2026"
+
+          articles_path = "data/articles.json"
+          ids = []
+          if os.path.exists(articles_path):
+              with open(articles_path, "r", encoding="utf-8") as f:
+                  loaded = json.load(f)
+                  if isinstance(loaded, list):
+                      ids = loaded
+          if "main-page" not in ids:
+              ids.insert(0, "main-page")
+          with open(articles_path, "w", encoding="utf-8") as f:
+              json.dump(ids, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+
+          index_path = "data/index.json"
+          if os.path.exists(index_path):
+              with open(index_path, "r", encoding="utf-8") as f:
+                  index_obj = json.load(f)
+          else:
+              index_obj = {"articles": []}
+
+          index_obj["wikiVersion"] = wiki_version
+          index_obj["gdpsVersion"] = gdps_version
+          index_obj["lastUpdated"] = last_updated
+
+          entries = index_obj.get("articles", [])
+          main_entry = {
+              "id": "main-page",
+              "title": "Main Page",
+              "description": f"Welcome portal to Maxr3 GDPS Wiki ({wiki_version})."
+          }
+          replaced = False
+          for i, item in enumerate(entries):
+              if isinstance(item, dict) and item.get("id") == "main-page":
+                  entries[i] = main_entry
+                  replaced = True
+                  break
+          if not replaced:
+              entries.insert(0, main_entry)
+          index_obj["articles"] = entries
+
+          with open(index_path, "w", encoding="utf-8") as f:
+              json.dump(index_obj, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+          EOF
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if ! git diff --staged --quiet; then
+            git commit -m "wiki(main-page): update to ${{ inputs.wiki_version }}"
+            git push
+          fi
+
+      - name: Ready
+        run: |
+          echo "Ready! Main Page updated in /data and registered in articles.json."
