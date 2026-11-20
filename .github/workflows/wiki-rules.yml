@@ -1,0 +1,250 @@
+name: Wiki - Rules Article
+
+on:
+  workflow_dispatch:
+    inputs:
+      article_id:
+        description: 'Rules slug / ID (e.g., server-rules)'
+        required: true
+        default: 'server-rules'
+        type: string
+      title:
+        description: 'Policy / Rules title (e.g., Server Rules)'
+        required: true
+        default: 'Server Rules'
+        type: string
+      applies_to:
+        description: 'Who the rules apply to'
+        required: true
+        default: 'All Players & Creators'
+        type: string
+      status:
+        description: 'Policy status'
+        required: true
+        default: 'Active'
+        type: string
+      infobox_image:
+        description: 'Infobox image URL or local path (optional)'
+        required: false
+        default: ''
+        type: string
+      infobox_caption:
+        description: 'Infobox image caption (optional)'
+        required: false
+        default: ''
+        type: string
+      summary:
+        description: 'Rules overview (HTML allowed)'
+        required: true
+        type: string
+      section_heading:
+        description: 'First rules section heading'
+        required: true
+        default: 'General Guidelines'
+        type: string
+      section_content:
+        description: 'Rules list or paragraphs (HTML allowed)'
+        required: true
+        type: string
+      categories:
+        description: 'Comma-separated categories'
+        required: false
+        default: 'Policies, Maxr3 GDPS'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  update-rules-article:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Installing Text Editor
+        run: |
+          echo "Installing Text Editor..."
+          sleep 4
+
+      - name: Moving Text Editor files
+        run: |
+          echo "Moving Text Editor files..."
+          sleep 7
+
+      - name: Opening Program
+        run: |
+          echo "Opening Program..."
+          sleep 2
+
+      - name: Providing file
+        run: |
+          echo "Providing file..."
+
+      - name: Creating File
+        run: |
+          echo "Creating File..."
+          mkdir -p temp_article
+          sleep 4.1
+
+      - name: Filling in
+        env:
+          ARTICLE_ID: ${{ inputs.article_id }}
+          ARTICLE_TITLE: ${{ inputs.title }}
+          APPLIES_TO: ${{ inputs.applies_to }}
+          RULE_STATUS: ${{ inputs.status }}
+          INFOBOX_IMAGE: ${{ inputs.infobox_image }}
+          INFOBOX_CAPTION: ${{ inputs.infobox_caption }}
+          ARTICLE_SUMMARY: ${{ inputs.summary }}
+          SECTION_HEADING: ${{ inputs.section_heading }}
+          SECTION_CONTENT: ${{ inputs.section_content }}
+          CATEGORIES: ${{ inputs.categories }}
+        run: |
+          echo "Filling in article data..."
+          python3 - << 'EOF'
+          import json
+          import os
+          import re
+
+          slug = re.sub(r"[^a-z0-9-]+", "-", os.environ["ARTICLE_ID"].strip().lower()).strip("-")
+          if not slug:
+              raise SystemExit("Invalid article_id")
+
+          title = os.environ["ARTICLE_TITLE"].strip()
+          applies_to = os.environ["APPLIES_TO"].strip()
+          status = os.environ["RULE_STATUS"].strip()
+          image = os.environ.get("INFOBOX_IMAGE", "").strip()
+          caption = os.environ.get("INFOBOX_CAPTION", "").strip()
+          summary = os.environ["ARTICLE_SUMMARY"].strip()
+          heading = os.environ["SECTION_HEADING"].strip() or "General Guidelines"
+          content = os.environ["SECTION_CONTENT"].strip()
+          categories = [c.strip() for c in os.environ.get("CATEGORIES", "").split(",") if c.strip()]
+
+          infobox = {
+              "type": "rules",
+              "title": title,
+              "groups": [
+                  {
+                      "header": "Policy Details",
+                      "rows": [
+                          {"label": "Applies To", "value": applies_to},
+                          {"label": "Status", "value": f"<b>{status}</b>"}
+                      ]
+                  }
+              ]
+          }
+          if image:
+              infobox["image"] = image
+          if caption:
+              infobox["caption"] = caption
+
+          article_data = {
+              "id": slug,
+              "title": title,
+              "summary": summary,
+              "infobox": infobox,
+              "sections": [{"heading": heading, "content": content}],
+              "categories": categories
+          }
+
+          with open(f"temp_article/{slug}.json", "w", encoding="utf-8") as f:
+              json.dump(article_data, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+          EOF
+          sleep 16
+
+      - name: Saving file
+        run: |
+          echo "Saving file..."
+          sleep 4.5
+
+      - name: Entering the Repository
+        uses: actions/checkout@v4
+
+      - name: Repository connection delay
+        run: sleep 2
+
+      - name: Checking data folder for read and write permissions
+        run: |
+          mkdir -p data
+          test -r data && test -w data
+          echo "Read and write permissions verified on data/"
+
+      - name: Uploading file to /data
+        run: |
+          cp -f temp_article/*.json data/
+          rm -rf temp_article
+          sleep 5
+
+      - name: Modifying articles.json
+        env:
+          ARTICLE_ID: ${{ inputs.article_id }}
+          ARTICLE_TITLE: ${{ inputs.title }}
+          ARTICLE_SUMMARY: ${{ inputs.summary }}
+        run: |
+          python3 - << 'EOF'
+          import json
+          import os
+          import re
+
+          slug = re.sub(r"[^a-z0-9-]+", "-", os.environ["ARTICLE_ID"].strip().lower()).strip("-")
+          title = os.environ["ARTICLE_TITLE"].strip()
+          summary = os.environ["ARTICLE_SUMMARY"].strip()
+
+          articles_path = "data/articles.json"
+          ids = []
+          if os.path.exists(articles_path):
+              with open(articles_path, "r", encoding="utf-8") as f:
+                  loaded = json.load(f)
+                  if isinstance(loaded, list):
+                      ids = loaded
+          if slug not in ids:
+              ids.append(slug)
+          with open(articles_path, "w", encoding="utf-8") as f:
+              json.dump(ids, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+
+          index_path = "data/index.json"
+          if os.path.exists(index_path):
+              with open(index_path, "r", encoding="utf-8") as f:
+                  index_obj = json.load(f)
+          else:
+              index_obj = {
+                  "wikiVersion": "26.11",
+                  "lastUpdated": "November 2026",
+                  "gdpsVersion": "2.208 / 2.2081",
+                  "articles": []
+              }
+
+          index_obj["wikiVersion"] = index_obj.get("wikiVersion") or "26.11"
+          entries = index_obj.get("articles", [])
+          plain_desc = re.sub(r"<[^>]+>", "", summary).strip()[:120]
+          new_entry = {
+              "id": slug,
+              "title": title,
+              "description": plain_desc or f"Official policy: {title}"
+          }
+          replaced = False
+          for i, item in enumerate(entries):
+              if isinstance(item, dict) and item.get("id") == slug:
+                  entries[i] = new_entry
+                  replaced = True
+                  break
+          if not replaced:
+              entries.append(new_entry)
+          index_obj["articles"] = entries
+
+          with open(index_path, "w", encoding="utf-8") as f:
+              json.dump(index_obj, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+          EOF
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if ! git diff --staged --quiet; then
+            git commit -m "wiki(rules): add/update ${{ inputs.article_id }}"
+            git push
+          fi
+
+      - name: Ready
+        run: |
+          echo "Ready! Rules article published to /data and registered in articles.json."
