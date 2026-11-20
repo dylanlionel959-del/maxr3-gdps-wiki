@@ -85,6 +85,7 @@ jobs:
       - name: Creating File
         run: |
           echo "Creating File..."
+          rm -rf /tmp/wiki_temp_article
           mkdir -p /tmp/wiki_temp_article
           sleep 4.1
 
@@ -161,6 +162,7 @@ jobs:
       - name: Saving file
         run: |
           echo "Saving file..."
+          ls -la /tmp/wiki_temp_article/
           sleep 4.5
 
       - name: Entering the Repository
