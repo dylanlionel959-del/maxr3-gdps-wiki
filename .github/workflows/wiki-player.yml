@@ -1,0 +1,258 @@
+name: Wiki - Player Article
+
+on:
+  workflow_dispatch:
+    inputs:
+      article_id:
+        description: 'Player slug / ID (e.g., maxr3)'
+        required: true
+        type: string
+      title:
+        description: 'Player name (e.g., Maxr3)'
+        required: true
+        type: string
+      role:
+        description: 'Role badge/text (e.g., Owner / Admin, Player, Moderator)'
+        required: true
+        default: 'Player'
+        type: string
+      country:
+        description: 'Country (optional)'
+        required: false
+        default: ''
+        type: string
+      hardest:
+        description: 'Hardest level (optional)'
+        required: false
+        default: ''
+        type: string
+      infobox_image:
+        description: 'Infobox image URL or local path (optional)'
+        required: false
+        default: ''
+        type: string
+      infobox_caption:
+        description: 'Infobox image caption (optional)'
+        required: false
+        default: ''
+        type: string
+      summary:
+        description: 'Player summary (HTML allowed)'
+        required: true
+        type: string
+      section_heading:
+        description: 'Main section heading'
+        required: true
+        default: 'History'
+        type: string
+      section_content:
+        description: 'Main section content (HTML allowed)'
+        required: true
+        type: string
+      categories:
+        description: 'Comma-separated categories'
+        required: false
+        default: 'Players, Maxr3 GDPS'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  update-player-article:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Installing Text Editor
+        run: |
+          echo "Installing Text Editor..."
+          sleep 4
+
+      - name: Moving Text Editor files
+        run: |
+          echo "Moving Text Editor files..."
+          sleep 7
+
+      - name: Opening Program
+        run: |
+          echo "Opening Program..."
+          sleep 2
+
+      - name: Providing file
+        run: |
+          echo "Providing file..."
+
+      - name: Creating File
+        run: |
+          echo "Creating File..."
+          mkdir -p temp_article
+          sleep 4.1
+
+      - name: Filling in
+        env:
+          ARTICLE_ID: ${{ inputs.article_id }}
+          ARTICLE_TITLE: ${{ inputs.title }}
+          PLAYER_ROLE: ${{ inputs.role }}
+          PLAYER_COUNTRY: ${{ inputs.country }}
+          PLAYER_HARDEST: ${{ inputs.hardest }}
+          INFOBOX_IMAGE: ${{ inputs.infobox_image }}
+          INFOBOX_CAPTION: ${{ inputs.infobox_caption }}
+          ARTICLE_SUMMARY: ${{ inputs.summary }}
+          SECTION_HEADING: ${{ inputs.section_heading }}
+          SECTION_CONTENT: ${{ inputs.section_content }}
+          CATEGORIES: ${{ inputs.categories }}
+        run: |
+          echo "Filling in article data..."
+          python3 - << 'EOF'
+          import json
+          import os
+          import re
+
+          slug = re.sub(r"[^a-z0-9-]+", "-", os.environ["ARTICLE_ID"].strip().lower()).strip("-")
+          if not slug:
+              raise SystemExit("Invalid article_id")
+
+          title = os.environ["ARTICLE_TITLE"].strip()
+          role = os.environ["PLAYER_ROLE"].strip() or "Player"
+          country = os.environ.get("PLAYER_COUNTRY", "").strip()
+          hardest = os.environ.get("PLAYER_HARDEST", "").strip()
+          image = os.environ.get("INFOBOX_IMAGE", "").strip()
+          caption = os.environ.get("INFOBOX_CAPTION", "").strip()
+          summary = os.environ["ARTICLE_SUMMARY"].strip()
+          heading = os.environ["SECTION_HEADING"].strip() or "History"
+          content = os.environ["SECTION_CONTENT"].strip()
+          categories = [c.strip() for c in os.environ.get("CATEGORIES", "").split(",") if c.strip()]
+
+          rows = [
+              {"label": "Role", "value": f"<b>{role}</b>"},
+              {"label": "Article ID", "value": f"<code>{slug}</code>"}
+          ]
+          if country:
+              rows.append({"label": "Country", "value": country})
+          if hardest:
+              rows.append({"label": "Hardest", "value": hardest})
+
+          infobox = {
+              "type": "player",
+              "title": title,
+              "groups": [{"header": "Player Information", "rows": rows}]
+          }
+          if image:
+              infobox["image"] = image
+          if caption:
+              infobox["caption"] = caption
+
+          article_data = {
+              "id": slug,
+              "title": title,
+              "summary": summary,
+              "infobox": infobox,
+              "sections": [{"heading": heading, "content": content}],
+              "categories": categories
+          }
+
+          with open(f"temp_article/{slug}.json", "w", encoding="utf-8") as f:
+              json.dump(article_data, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+          EOF
+          sleep 16
+
+      - name: Saving file
+        run: |
+          echo "Saving file..."
+          sleep 4.5
+
+      - name: Entering the Repository
+        uses: actions/checkout@v4
+
+      - name: Repository connection delay
+        run: sleep 2
+
+      - name: Checking data folder for read and write permissions
+        run: |
+          mkdir -p data
+          test -r data && test -w data
+          echo "Read and write permissions verified on data/"
+
+      - name: Uploading file to /data
+        run: |
+          cp -f temp_article/*.json data/
+          rm -rf temp_article
+          sleep 5
+
+      - name: Modifying articles.json
+        env:
+          ARTICLE_ID: ${{ inputs.article_id }}
+          ARTICLE_TITLE: ${{ inputs.title }}
+          PLAYER_ROLE: ${{ inputs.role }}
+          ARTICLE_SUMMARY: ${{ inputs.summary }}
+        run: |
+          python3 - << 'EOF'
+          import json
+          import os
+          import re
+
+          slug = re.sub(r"[^a-z0-9-]+", "-", os.environ["ARTICLE_ID"].strip().lower()).strip("-")
+          title = os.environ["ARTICLE_TITLE"].strip()
+          role = os.environ["PLAYER_ROLE"].strip() or "Player"
+          summary = os.environ["ARTICLE_SUMMARY"].strip()
+
+          articles_path = "data/articles.json"
+          ids = []
+          if os.path.exists(articles_path):
+              with open(articles_path, "r", encoding="utf-8") as f:
+                  loaded = json.load(f)
+                  if isinstance(loaded, list):
+                      ids = loaded
+          if slug not in ids:
+              ids.append(slug)
+          with open(articles_path, "w", encoding="utf-8") as f:
+              json.dump(ids, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+
+          index_path = "data/index.json"
+          if os.path.exists(index_path):
+              with open(index_path, "r", encoding="utf-8") as f:
+                  index_obj = json.load(f)
+          else:
+              index_obj = {
+                  "wikiVersion": "26.11",
+                  "lastUpdated": "November 2026",
+                  "gdpsVersion": "2.208 / 2.2081",
+                  "articles": []
+              }
+
+          index_obj["wikiVersion"] = index_obj.get("wikiVersion") or "26.11"
+          entries = index_obj.get("articles", [])
+          plain_desc = re.sub(r"<[^>]+>", "", summary).strip()[:120]
+          new_entry = {
+              "id": slug,
+              "title": title,
+              "description": plain_desc or f"{title} ({role}) on Maxr3 GDPS"
+          }
+          replaced = False
+          for i, item in enumerate(entries):
+              if isinstance(item, dict) and item.get("id") == slug:
+                  entries[i] = new_entry
+                  replaced = True
+                  break
+          if not replaced:
+              entries.append(new_entry)
+          index_obj["articles"] = entries
+
+          with open(index_path, "w", encoding="utf-8") as f:
+              json.dump(index_obj, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+          EOF
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if ! git diff --staged --quiet; then
+            git commit -m "wiki(player): add/update ${{ inputs.article_id }}"
+            git push
+          fi
+
+      - name: Ready
+        run: |
+          echo "Ready! Player article published to /data and registered in articles.json."
