@@ -3,198 +3,314 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Maxr3 GDPS Wiki</title>
+  <title>Maxr3 GDPS Wiki — 26.12-beta.1</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Linux+Libertine:wght@400;700&family=Lora:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet" />
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          colors: {
-            wiki: {
-              bg: '#f6f6f6',
-              border: '#a2a9b1',
-              blueBorder: '#a7d7f9',
-              link: '#3366cc',
-              visited: '#795cb2',
-              infoboxBg: '#f8f9fa',
-              infoboxLabel: '#eaecf0',
-              text: '#202122',
-              muted: '#54595d'
-            }
-          },
           fontFamily: {
-            serifWiki: ['"Linux Libertine"', 'Georgia', 'Times', '"Source Serif 4"', 'serif'],
-            sansWiki: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Lato', 'Helvetica', 'Arial', 'sans-serif']
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            serifWiki: ['Lora', 'Georgia', 'serif']
           }
         }
       }
-    }
+    };
   </script>
-  <style type="text/tailwindcss">
-    @layer base {
-      body {
-        @apply bg-wiki-bg text-wiki-text font-sansWiki text-sm antialiased;
-      }
+  <style>
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.72);
+      --glass-bg-strong: rgba(255, 255, 255, 0.84);
+      --glass-border: rgba(255, 255, 255, 0.85);
+      --glass-shadow: 0 12px 36px -8px rgba(15, 23, 42, 0.12), inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+      --wiki-link: #1d4ed8;
+      --wiki-link-hover: #b91c1c;
     }
-    @layer components {
-      .wiki-content a {
-        @apply text-wiki-link no-underline hover:underline visited:text-wiki-visited;
-      }
-      .wiki-content ul {
-        @apply list-disc ml-6 mt-1.5 mb-2.5 space-y-1;
-      }
-      .wiki-content ol {
-        @apply list-decimal ml-6 mt-1.5 mb-2.5 space-y-1;
-      }
-      .wiki-content p {
-        @apply mb-3 leading-relaxed;
-      }
-      .wiki-content code {
-        @apply bg-wiki-infoboxBg border border-wiki-infoboxLabel rounded-sm px-1.5 py-0.5 font-mono text-xs text-black;
-      }
+
+    body {
+      background:
+        radial-gradient(circle at 12% 10%, rgba(16, 185, 129, 0.22) 0%, transparent 38%),
+        radial-gradient(circle at 88% 12%, rgba(225, 29, 72, 0.20) 0%, transparent 40%),
+        radial-gradient(circle at 50% 85%, rgba(56, 189, 248, 0.22) 0%, transparent 48%),
+        linear-gradient(135deg, #eef6ff 0%, #f4fbf8 50%, #fdf2f4 100%);
+      background-attachment: fixed;
+      color: #1e293b;
+      min-height: 100vh;
+    }
+
+    /* Liquid Glass Surfaces */
+    .liquid-glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(18px) saturate(180%);
+      -webkit-backdrop-filter: blur(18px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .liquid-glass-strong {
+      background: var(--glass-bg-strong);
+      backdrop-filter: blur(22px) saturate(190%);
+      -webkit-backdrop-filter: blur(22px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.92);
+      box-shadow: 0 16px 40px -10px rgba(15, 23, 42, 0.14), inset 0 1px 1px rgba(255, 255, 255, 1);
+    }
+
+    .holiday-banner {
+      background: linear-gradient(
+        120deg,
+        rgba(153, 27, 27, 0.86) 0%,
+        rgba(6, 95, 70, 0.86) 52%,
+        rgba(15, 23, 42, 0.88) 100%
+      );
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 14px 32px -8px rgba(153, 27, 27, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+
+    /* Snowfall layer */
+    #snow-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 40;
+    }
+
+    /* Wikipedia-inspired typography inside glass cards */
+    .wiki-body a {
+      color: var(--wiki-link);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.15s ease;
+    }
+    .wiki-body a:hover {
+      color: var(--wiki-link-hover);
+      text-decoration: underline;
+    }
+    .wiki-body p {
+      margin-bottom: 0.85rem;
+      line-height: 1.65;
+    }
+    .wiki-body ul {
+      list-style-type: disc;
+      padding-left: 1.5rem;
+      margin-bottom: 0.85rem;
+    }
+    .wiki-body ol {
+      list-style-type: decimal;
+      padding-left: 1.5rem;
+      margin-bottom: 0.85rem;
+    }
+    .wiki-body code {
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 0.375rem;
+      padding: 0.1rem 0.35rem;
+      font-size: 0.85em;
+    }
+
+    /* Liquid Infobox */
+    .wiki-infobox {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
     }
   </style>
 </head>
-<body>
+<body class="antialiased selection:bg-emerald-200 selection:text-emerald-950">
+  <canvas id="snow-canvas" aria-hidden="true"></canvas>
 
-  <div class="flex min-h-screen">
-    <!-- Sidebar (Estilo Vector de Wikipedia) -->
-    <aside id="sidebar" class="w-44 flex-shrink-0 px-4 py-4 hidden md:block select-none">
-      <!-- Logo & Versión -->
-      <a href="#main-page" class="block mb-5 text-center group">
-        <div class="w-24 h-24 mx-auto bg-white rounded-full flex flex-col items-center justify-center border border-wiki-border shadow-inner group-hover:border-wiki-link transition">
-          <span class="font-serifWiki text-xl font-bold text-wiki-text tracking-tighter">M3</span>
-          <span class="text-[9px] uppercase tracking-widest text-wiki-muted">GDPS</span>
+  <!-- Holiday & Year-End 2026 -> 27.01 Liquid Glass Notice -->
+  <div class="max-w-7xl mx-auto px-3 sm:px-6 pt-3 relative z-10">
+    <div class="holiday-banner rounded-2xl px-4 py-3.5 text-white">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center text-xl shrink-0 shadow-inner">
+            🎄
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-400/25 border border-amber-300/40 text-amber-200">
+                Holiday Edition • v26.12-beta.1
+              </span>
+              <span class="text-xs text-emerald-200 font-medium">
+                ❄️ Liquid Glass Redesign
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-white/95 mt-1 leading-snug">
+              <b>Season Notice:</b> The year <b>2026</b> is coming to an end! After Christmas and the 2026 year-end countdown, Maxr3 GDPS Wiki will upgrade to version <b class="text-amber-300 underline decoration-amber-300/60">27.01</b>.
+            </p>
+          </div>
         </div>
-        <div class="font-serifWiki text-[17px] font-bold mt-2 tracking-wide text-black">MAXR3 GDPS</div>
-        <div class="text-[11px] text-wiki-muted">The Free Encyclopedia</div>
-        <div class="mt-1.5">
-          <span id="wiki-version-sidebar" class="inline-block bg-white border border-wiki-border px-2 py-0.5 text-[10px] font-mono text-wiki-muted">
-            v1.0.0
+
+        <!-- Live Local Timezone & 2026 End Countdown -->
+        <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 bg-black/25 border border-white/20 rounded-xl px-3.5 py-2 shrink-0">
+          <div class="text-left">
+            <div class="text-[10px] uppercase tracking-wider text-emerald-200 font-semibold">
+              Your Timezone (<span id="user-timezone">Detecting...</span>)
+            </div>
+            <div id="user-local-clock" class="text-xs sm:text-sm font-mono font-bold text-white">
+              --:--:--
+            </div>
+          </div>
+          <div class="h-7 w-px bg-white/20 hidden sm:block"></div>
+          <div class="text-left">
+            <div class="text-[10px] uppercase tracking-wider text-amber-200 font-semibold">
+              2026 Ends In (→ v27.01)
+            </div>
+            <div id="year-end-countdown" class="text-xs sm:text-sm font-mono font-bold text-amber-300">
+              --d --h --m --s
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Liquid Navigation Header -->
+  <header class="max-w-7xl mx-auto px-3 sm:px-6 pt-3 relative z-10">
+    <div class="liquid-glass rounded-2xl px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <a href="#main-page" class="flex items-center gap-3 group">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-600 to-rose-600 p-0.5 shadow-md">
+            <div class="w-full h-full rounded-[14px] bg-white/90 flex items-center justify-center font-serifWiki font-bold text-lg text-slate-900 group-hover:scale-105 transition-transform">
+              M3
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-serifWiki font-bold text-lg sm:text-xl text-slate-900 tracking-tight">Maxr3 GDPS Wiki</span>
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 border border-emerald-500/30">
+                26.12-beta.1
+              </span>
+            </div>
+            <p class="text-xs text-slate-600">The free encyclopedia for Maxr3 Geometry Dash Private Server</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Search Box -->
+      <div class="relative w-full md:w-80">
+        <input
+          id="wiki-search"
+          type="search"
+          placeholder="Search Maxr3 GDPS Wiki..."
+          autocomplete="off"
+          class="w-full rounded-xl bg-white/80 border border-white px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 shadow-inner focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+        />
+        <div
+          id="search-results"
+          class="hidden absolute right-0 left-0 mt-1.5 liquid-glass-strong rounded-xl overflow-hidden z-30 max-h-72 overflow-y-auto divide-y divide-slate-200/70"
+        ></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace Layout -->
+  <div class="max-w-7xl mx-auto px-3 sm:px-6 py-4 grid grid-cols-1 lg:grid-cols-12 gap-4 relative z-10">
+    <!-- Left Glass Sidebar -->
+    <aside class="lg:col-span-3 space-y-4">
+      <nav class="liquid-glass rounded-2xl p-4">
+        <div class="flex items-center justify-between border-b border-slate-300/60 pb-2 mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Navigation</span>
+          <span class="text-xs">✨</span>
+        </div>
+        <ul class="space-y-1.5 text-sm">
+          <li>
+            <a href="#main-page" class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-white/75 text-slate-800 font-medium transition">
+              <span>🏠</span> Main Page
+            </a>
+          </li>
+          <li>
+            <button id="random-article-btn" type="button" class="w-full text-left flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-white/75 text-slate-800 font-medium transition">
+              <span>🎲</span> Random Article
+            </button>
+          </li>
+        </ul>
+
+        <div class="flex items-center justify-between border-b border-slate-300/60 pb-2 mt-5 mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Wiki Articles</span>
+          <span id="article-count-badge" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-800 border border-rose-400/30">
+            0
           </span>
         </div>
-      </a>
-
-      <!-- Navegación -->
-      <nav class="space-y-4 text-xs">
-        <div>
-          <ul class="space-y-1.5 text-wiki-link">
-            <li><a href="#main-page" class="hover:underline">Main page</a></li>
-            <li><a href="#pink-wave" class="hover:underline">Featured level</a></li>
-            <li><a href="javascript:void(0)" onclick="loadRandomArticle()" class="hover:underline">Random article</a></li>
-            <li><a href="#server-rules" class="hover:underline">Server rules</a></li>
-          </ul>
-        </div>
-
-        <div class="border-t border-gray-300 pt-2">
-          <div class="text-wiki-muted font-normal mb-1.5">Community</div>
-          <ul class="space-y-1.5 text-wiki-link">
-            <li><a href="#maxr3" class="hover:underline">Maxr3 (Founder)</a></li>
-            <li><a href="https://mr3gdps1938.ps.fhgdps.com" target="_blank" class="hover:underline">GDPS Dashboard ↗</a></li>
-          </ul>
-        </div>
-
-        <div class="border-t border-gray-300 pt-2">
-          <div class="text-wiki-muted font-normal mb-1.5">All Articles</div>
-          <ul id="sidebar-article-list" class="space-y-1.5 text-wiki-link">
-            <!-- Cargado desde data/index.json -->
-          </ul>
-        </div>
+        <ul id="sidebar-article-list" class="space-y-1 text-sm max-h-80 overflow-y-auto pr-1">
+          <li class="text-xs text-slate-500 px-2 py-1">Loading articles...</li>
+        </ul>
       </nav>
+
+      <!-- Release Roadmap Card -->
+      <div class="liquid-glass rounded-2xl p-4 text-xs text-slate-700 space-y-2">
+        <div class="font-bold text-slate-900 flex items-center gap-1.5">
+          <span>🎁</span> Version Roadmap
+        </div>
+        <div class="flex items-center justify-between bg-white/60 rounded-xl px-3 py-2 border border-white">
+          <span class="font-semibold text-emerald-800">Current Build</span>
+          <code class="font-bold text-slate-900">26.12-beta.1</code>
+        </div>
+        <div class="flex items-center justify-between bg-white/60 rounded-xl px-3 py-2 border border-white">
+          <span class="font-semibold text-rose-800">Post-Holiday Release</span>
+          <code class="font-bold text-slate-900">27.01</code>
+        </div>
+        <p class="text-[11px] text-slate-600 leading-relaxed pt-1">
+          Liquid Glass UI preview celebrating Christmas &amp; the final stretch of 2026 before transitioning into <b>27.01</b>.
+        </p>
+      </div>
     </aside>
 
-    <!-- Contenedor Principal -->
-    <div class="flex-1 flex flex-col min-w-0">
-      <!-- Barra superior de pestañas y buscador -->
-      <header class="flex flex-wrap justify-between items-end px-4 md:px-6 pt-3 bg-wiki-bg gap-2">
-        <!-- Pestañas izquierda -->
-        <div class="flex items-end space-x-1 text-xs">
-          <button onclick="toggleMobileMenu()" class="md:hidden bg-white border border-gray-300 px-2.5 py-1.5 mr-1 text-gray-700 hover:bg-gray-100">
-            ☰
-          </button>
-          <span id="tab-article" class="bg-white border-t border-l border-r border-wiki-blueBorder px-3 py-1.5 font-medium text-black -mb-[1px] z-10 cursor-default">
-            Article
-          </span>
-          <a href="#server-rules" class="bg-[#f3f3f3] border-t border-l border-r border-gray-300 px-3 py-1.5 text-wiki-link hover:bg-white">
-            Guidelines
-          </a>
-        </div>
-
-        <!-- Buscador estilo Wikipedia -->
-        <div class="pb-1.5 relative w-full sm:w-64">
-          <div class="relative">
-            <input
-              type="text"
-              id="search-input"
-              autocomplete="off"
-              placeholder="Search Maxr3 GDPS Wiki"
-              class="w-full border border-wiki-border bg-white pl-2.5 pr-7 py-1 text-xs focus:outline-none focus:border-wiki-link shadow-inner"
-            />
-            <span class="absolute right-2 top-1 text-gray-400 text-xs pointer-events-none">🔍</span>
+    <!-- Main Article Container -->
+    <main class="lg:col-span-9">
+      <article class="liquid-glass-strong rounded-3xl p-5 sm:p-8">
+        <!-- Article Header -->
+        <div class="border-b border-slate-300/70 pb-3 mb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+          <div>
+            <h1 id="article-title" class="font-serifWiki text-2xl sm:text-4xl font-bold text-slate-900">
+              Main Page
+            </h1>
+            <p id="article-subtitle" class="text-xs text-slate-500 mt-1">
+              From Maxr3 GDPS Wiki, the free encyclopedia
+            </p>
           </div>
-          <!-- Resultados desplegables -->
-          <div id="search-results" class="hidden absolute left-0 right-0 mt-0.5 bg-white border border-wiki-border shadow-md z-50 text-xs max-h-60 overflow-y-auto"></div>
-        </div>
-      </header>
-
-      <!-- Cuerpo del Artículo (Hoja blanca con borde azul Wikipedia) -->
-      <main class="flex-1 bg-white border-t border-l border-wiki-blueBorder px-5 md:px-7 py-5 mr-0 md:mr-4 mb-6">
-        
-        <!-- Encabezado del Artículo -->
-        <div class="border-b border-wiki-border pb-1 mb-1 flex justify-between items-baseline">
-          <h1 id="article-title" class="font-serifWiki text-2xl md:text-[28px] font-normal text-black leading-tight">
-            Loading...
-          </h1>
-          <span id="article-category-badge" class="text-[11px] font-mono text-wiki-muted hidden sm:inline"></span>
-        </div>
-        <div id="article-subtitle" class="text-xs text-wiki-muted mb-4">
-          From Maxr3 GDPS Wiki, the free encyclopedia
-        </div>
-
-        <!-- Contenido Principal + Infobox -->
-        <div class="wiki-content flow-root">
-          <!-- Infobox flotante a la derecha -->
-          <table id="infobox" class="w-full sm:w-72 sm:float-right sm:ml-5 mb-4 border border-wiki-border bg-wiki-infoboxBg text-xs hidden border-collapse">
-            <thead>
-              <tr>
-                <th colspan="2" id="infobox-title" class="bg-[#cee0f2] text-center py-1.5 px-2 text-sm font-bold border-b border-wiki-border"></th>
-              </tr>
-            </thead>
-            <tbody id="infobox-body">
-              <!-- Renderizado dinámico -->
-            </tbody>
-          </table>
-
-          <!-- Resumen introductorio -->
-          <div id="article-summary" class="text-[14px]"></div>
-
-          <!-- Tabla de Contenidos (TOC estilo Wikipedia) -->
-          <div id="toc" class="inline-block border border-wiki-border bg-wiki-infoboxBg px-4 py-2.5 mb-5 text-xs hidden min-w-[200px]">
-            <div class="font-bold text-center mb-1.5 text-wiki-text">Contents</div>
-            <ol id="toc-list" class="list-decimal ml-4 space-y-1 text-wiki-link"></ol>
+          <div class="flex items-center gap-2">
+            <span id="wiki-version-pill" class="text-xs font-mono px-2.5 py-1 rounded-xl bg-white/80 border border-white text-slate-700 shadow-sm">
+              Engine 26.12-beta.1
+            </span>
           </div>
-
-          <!-- Secciones del Artículo -->
-          <div id="article-sections" class="space-y-5 text-[14px]"></div>
         </div>
 
-        <!-- Pie de categorías estilo Wikipedia -->
-        <div id="article-categories" class="mt-8 pt-2 border border-wiki-border bg-wiki-infoboxBg px-3 py-1.5 text-xs hidden">
-          <span class="text-wiki-link font-medium">Categories:</span>
-          <span id="categories-list" class="ml-1 text-wiki-link"></span>
+        <!-- Article Content Area -->
+        <div id="article-content" class="wiki-body text-sm sm:text-[15px] text-slate-800 clearfix">
+          <div class="py-12 text-center text-slate-500">
+            Loading encyclopedia entry...
+          </div>
         </div>
 
-      </main>
+        <!-- Categories Footer -->
+        <div id="article-categories-box" class="hidden mt-8 pt-4 border-t border-slate-300/70">
+          <div class="liquid-glass rounded-xl px-3.5 py-2.5 flex flex-wrap items-center gap-2 text-xs">
+            <span class="font-bold text-slate-700">Categories:</span>
+            <div id="article-categories" class="flex flex-wrap gap-1.5"></div>
+          </div>
+        </div>
+      </article>
 
-      <!-- Footer con Versión de la Wiki -->
-      <footer class="px-6 pb-6 text-[11px] text-wiki-muted space-y-1">
+      <!-- Footer -->
+      <footer class="mt-4 px-2 py-3 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600">
         <div>
-          This page was dynamically generated by the Maxr3 GDPS Wiki Engine 
-          (<span id="wiki-version-footer" class="font-mono font-semibold text-wiki-text">v1.0.0</span>).
+          Maxr3 GDPS Wiki • Running <b>26.12-beta.1</b> (Liquid Glass Holiday UI) • Next Milestone: <b>27.01</b>
         </div>
-        <div>Content is available under Creative Commons Attribution-ShareAlike 4.0 International License unless otherwise noted.</div>
+        <div id="footer-last-updated">
+          Updated December 2026
+        </div>
       </footer>
-    </div>
+    </main>
   </div>
 
   <script src="app.js"></script>
