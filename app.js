@@ -12,6 +12,13 @@
     cache: new Map()
   };
 
+  function replayLiquidEnter(el) {
+    if (!el) return;
+    el.classList.remove('liquid-enter');
+    void el.offsetWidth;
+    el.classList.add('liquid-enter');
+  }
+
   // --- 1. Local Timezone Clock & Year-End 2026 Countdown ---
   function initHolidayCountdown() {
     const tzEl = document.getElementById('user-timezone');
@@ -31,7 +38,6 @@
     function updateTimers() {
       const now = new Date();
 
-      // Current local clock formatted in user's timezone
       if (clockEl) {
         try {
           clockEl.textContent = now.toLocaleTimeString([], {
@@ -44,7 +50,6 @@
         }
       }
 
-      // Target: End of 2026 in the user's local timezone (Jan 1, 2027 00:00:00 local)
       const endOf2026 = new Date(2027, 0, 1, 0, 0, 0, 0);
       const diffMs = endOf2026.getTime() - now.getTime();
 
@@ -68,7 +73,7 @@
     setInterval(updateTimers, 1000);
   }
 
-  // --- 2. Subtle Liquid Glass Snowfall Effect ---
+  // --- 2. Subtle Liquid Snowfall with Gentle Wave Drift ---
   function initSnowEffect() {
     const canvas = document.getElementById('snow-canvas');
     if (!canvas) return;
@@ -79,12 +84,14 @@
     let height = (canvas.height = window.innerHeight);
 
     const flakeCount = Math.min(48, Math.floor(width / 28));
-    const flakes = Array.from({ length: flakeCount }, () => ({
+    const flakes = Array.from({ length: flakeCount }, (_, idx) => ({
       x: Math.random() * width,
       y: Math.random() * height,
       r: 1.5 + Math.random() * 2.8,
-      speedY: 0.35 + Math.random() * 0.75,
-      speedX: -0.25 + Math.random() * 0.5,
+      speedY: 0.35 + Math.random() * 0.72,
+      swayAmp: 0.25 + Math.random() * 0.45,
+      swaySpeed: 0.008 + Math.random() * 0.012,
+      phase: idx * 0.7,
       alpha: 0.35 + Math.random() * 0.5
     }));
 
@@ -96,8 +103,10 @@
     function animate() {
       ctx.clearRect(0, 0, width, height);
       for (const f of flakes) {
+        f.phase += f.swaySpeed;
         f.y += f.speedY;
-        f.x += f.speedX;
+        f.x += Math.sin(f.phase) * f.swayAmp;
+
         if (f.y > height) {
           f.y = -6;
           f.x = Math.random() * width;
@@ -138,7 +147,7 @@
     }
   }
 
-  // --- 5. Built-in Fallback Main Page (if data/main-page.json is missing) ---
+  // --- 5. Built-in Fallback Main Page ---
   function getFallbackMainPage() {
     return {
       id: 'main-page',
@@ -146,12 +155,12 @@
       subtitle: 'From Maxr3 GDPS Wiki, the free encyclopedia',
       hideToc: true,
       summary: `
-        <div class="liquid-glass rounded-2xl p-4 sm:p-5 mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
+        <div class="liquid-glass liquid-sheen rounded-2xl p-4 sm:p-5 mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div class="relative z-10">
             <div class="font-serifWiki text-2xl text-slate-900">Welcome to <b>Maxr3 GDPS Wiki</b>,</div>
             <div class="text-xs text-slate-600 mt-1">the collaborative encyclopedia dedicated to the <b>Maxr3 Geometry Dash Private Server</b>.</div>
           </div>
-          <div class="text-left sm:text-right text-xs text-slate-700 space-y-1 bg-white/65 border border-white rounded-xl px-3.5 py-2.5">
+          <div class="relative z-10 text-left sm:text-right text-xs text-slate-700 space-y-1 bg-white/65 border border-white rounded-xl px-3.5 py-2.5">
             <div>GDPS Version: <b>${state.gdpsVersion}</b></div>
             <div>Wiki Engine: <code>${state.wikiVersion}</code></div>
             <div>Next Major: <code>${NEXT_VERSION}</code></div>
@@ -159,13 +168,13 @@
           </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-          <div class="rounded-2xl border border-emerald-300/60 bg-emerald-50/65 p-4">
+          <div class="liquid-glass rounded-2xl border border-emerald-300/60 bg-emerald-50/65 p-4">
             <h3 class="font-bold text-sm text-emerald-950 mb-1.5 flex items-center gap-1.5">🎄 Holiday Liquid Glass Preview</h3>
             <p class="text-xs leading-relaxed text-slate-700 mb-0">
-              Explore Maxr3 GDPS players, rated levels, and server rules in our translucent Liquid Glass interface as we close out <b>2026</b> and prepare for version <b>${NEXT_VERSION}</b>.
+              Explore Maxr3 GDPS players, rated levels, and server rules in our animated Liquid Glass interface as we close out <b>2026</b> and prepare for version <b>${NEXT_VERSION}</b>.
             </p>
           </div>
-          <div class="rounded-2xl border border-rose-300/60 bg-rose-50/65 p-4">
+          <div class="liquid-glass rounded-2xl border border-rose-300/60 bg-rose-50/65 p-4">
             <h3 class="font-bold text-sm text-rose-950 mb-1.5 flex items-center gap-1.5">🧭 Quick Navigation</h3>
             <ul class="text-xs space-y-1 mb-0 text-slate-700">
               <li><b>Players &amp; Staff:</b> <a href="#maxr3">Maxr3</a></li>
@@ -194,7 +203,6 @@
     ]);
 
     if (indexData && typeof indexData === 'object') {
-      // Keep 26.12-beta.1 as active UI build while respecting GDPS version from index.json
       state.gdpsVersion = indexData.gdpsVersion || DEFAULT_GDPS_VERSION;
       state.lastUpdated = indexData.lastUpdated || 'December 2026';
       if (Array.isArray(indexData.articles)) {
@@ -248,11 +256,11 @@
       .map((slug) => {
         const active = slug === currentSlug;
         const activeClasses = active
-          ? 'bg-emerald-600/15 text-emerald-950 font-semibold border border-emerald-400/40'
+          ? 'bg-emerald-600/15 text-emerald-950 font-semibold border border-emerald-400/40 shadow-sm'
           : 'text-slate-700 hover:bg-white/75';
         return `
           <li>
-            <a href="#${encodeURIComponent(slug)}" class="block px-2.5 py-1.5 rounded-xl transition truncate ${activeClasses}">
+            <a href="#${encodeURIComponent(slug)}" class="liquid-nav-item block px-2.5 py-1.5 rounded-xl truncate ${activeClasses}">
               ${escapeHtml(formatSlugTitle(slug))}
             </a>
           </li>
@@ -354,6 +362,7 @@
             <p class="mb-0 text-xs">You can generate it using the GitHub Actions workflows or return to the <a href="#main-page">Main Page</a>.</p>
           </div>
         `;
+        replayLiquidEnter(contentEl);
       }
       if (catBox) catBox.classList.add('hidden');
       return;
@@ -386,19 +395,20 @@
 
     if (contentEl) {
       contentEl.innerHTML = `${infoboxHtml}${summaryHtml}${tocHtml}${sectionsHtml}`;
+      replayLiquidEnter(contentEl);
     }
 
-    // Categories
     if (Array.isArray(article.categories) && article.categories.length > 0 && catBox && catList) {
       catList.innerHTML = article.categories
         .map(
           (cat) =>
-            `<span class="px-2.5 py-0.5 rounded-full bg-white/80 border border-white text-slate-700 font-medium">${escapeHtml(
+            `<span class="px-2.5 py-0.5 rounded-full bg-white/80 border border-white text-slate-700 font-medium transition hover:bg-white">${escapeHtml(
               interpolateVariables(cat)
             )}</span>`
         )
         .join('');
       catBox.classList.remove('hidden');
+      replayLiquidEnter(catBox);
     } else if (catBox) {
       catBox.classList.add('hidden');
     }
@@ -429,7 +439,7 @@
         resultsBox.innerHTML = matches
           .map(
             (slug) => `
-            <a href="#${encodeURIComponent(slug)}" class="block px-3.5 py-2 text-xs hover:bg-white/80 transition">
+            <a href="#${encodeURIComponent(slug)}" class="block px-3.5 py-2 text-xs hover:bg-white/85 transition">
               <div class="font-semibold text-slate-900">${escapeHtml(formatSlugTitle(slug))}</div>
               <div class="text-[11px] text-slate-500">#${escapeHtml(slug)}</div>
             </a>`
@@ -437,6 +447,7 @@
           .join('');
       }
       resultsBox.classList.remove('hidden');
+      replayLiquidEnter(resultsBox);
     });
 
     document.addEventListener('click', (e) => {
