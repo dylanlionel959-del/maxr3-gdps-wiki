@@ -63,33 +63,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Installing Text Editor
-        run: |
-          echo "Installing Text Editor..."
-          sleep 4
+      - name: Entering the Repository
+        uses: actions/checkout@v4
 
-      - name: Moving Text Editor files
-        run: |
-          echo "Moving Text Editor files..."
-          sleep 7
-
-      - name: Opening Program
-        run: |
-          echo "Opening Program..."
-          sleep 2
-
-      - name: Providing file
-        run: |
-          echo "Providing file..."
-
-      - name: Creating File
-        run: |
-          echo "Creating File..."
-          rm -rf /tmp/wiki_temp_article
-          mkdir -p /tmp/wiki_temp_article
-          sleep 4.1
-
-      - name: Filling in
+      - name: Generate player JSON and update articles.json
         env:
           ARTICLE_ID: ${{ inputs.article_id }}
           ARTICLE_TITLE: ${{ inputs.title }}
@@ -103,12 +80,12 @@ jobs:
           SECTION_CONTENT: ${{ inputs.section_content }}
           CATEGORIES: ${{ inputs.categories }}
         run: |
-          echo "Filling in article data..."
           python3 - << 'EOF'
           import json
           import os
           import re
 
+          os.makedirs("data", exist_ok=True)
           slug = re.sub(r"[^a-z0-9-]+", "-", os.environ["ARTICLE_ID"].strip().lower()).strip("-")
           if not slug:
               raise SystemExit("Invalid article_id")
@@ -152,85 +129,48 @@ jobs:
               "categories": categories
           }
 
-          os.makedirs("/tmp/wiki_temp_article", exist_ok=True)
-          with open(f"/tmp/wiki_temp_article/{slug}.json", "w", encoding="utf-8") as f:
+          with open(f"data/{slug}.json", "w", encoding="utf-8") as f:
               json.dump(article_data, f, indent=2, ensure_ascii=False)
               f.write("\n")
-          EOF
-          sleep 16
-
-      - name: Saving file
-        run: |
-          echo "Saving file..."
-          ls -la /tmp/wiki_temp_article/
-          sleep 4.5
-
-      - name: Entering the Repository
-        uses: actions/checkout@v4
-
-      - name: Repository connection delay
-        run: sleep 2
-
-      - name: Checking data folder for read and write permissions
-        run: |
-          mkdir -p data
-          test -r data && test -w data
-          if [ -f "data/articles.json" ]; then
-            test -r "data/articles.json" && test -w "data/articles.json"
-          fi
-          echo "Read and write permissions verified on data and data/articles.json"
-
-      - name: Uploading file to /data
-        run: |
-          ls -la /tmp/wiki_temp_article/
-          cp -f /tmp/wiki_temp_article/*.json data/
-          rm -rf /tmp/wiki_temp_article
-          sleep 5
-
-      - name: Modifying articles.json
-        env:
-          ARTICLE_ID: ${{ inputs.article_id }}
-          ARTICLE_TITLE: ${{ inputs.title }}
-          PLAYER_ROLE: ${{ inputs.role }}
-          ARTICLE_SUMMARY: ${{ inputs.summary }}
-        run: |
-          python3 - << 'EOF'
-          import json
-          import os
-          import re
-
-          slug = re.sub(r"[^a-z0-9-]+", "-", os.environ["ARTICLE_ID"].strip().lower()).strip("-")
-          title = os.environ["ARTICLE_TITLE"].strip()
-          role = os.environ["PLAYER_ROLE"].strip() or "Player"
-          summary = os.environ["ARTICLE_SUMMARY"].strip()
 
           articles_path = "data/articles.json"
           ids = []
           if os.path.exists(articles_path):
-              with open(articles_path, "r", encoding="utf-8") as f:
-                  loaded = json.load(f)
-                  if isinstance(loaded, list):
-                      ids = loaded
+              try:
+                  with open(articles_path, "r", encoding="utf-8") as f:
+                      loaded = json.load(f)
+                      if isinstance(loaded, list):
+                          ids = loaded
+              except Exception:
+                  ids = []
           if slug not in ids:
               ids.append(slug)
+
           with open(articles_path, "w", encoding="utf-8") as f:
               json.dump(ids, f, indent=2, ensure_ascii=False)
               f.write("\n")
 
           index_path = "data/index.json"
           if os.path.exists(index_path):
-              with open(index_path, "r", encoding="utf-8") as f:
-                  index_obj = json.load(f)
+              try:
+                  with open(index_path, "r", encoding="utf-8") as f:
+                      index_obj = json.load(f)
+              except Exception:
+                  index_obj = {}
           else:
-              index_obj = {
-                  "wikiVersion": "26.11",
-                  "lastUpdated": "November 2026",
-                  "gdpsVersion": "2.208 / 2.2081",
-                  "articles": []
-              }
+              index_obj = {}
+
+          if not isinstance(index_obj, dict):
+              index_obj = {}
 
           index_obj["wikiVersion"] = index_obj.get("wikiVersion") or "26.11"
+          index_obj["lastUpdated"] = index_obj.get("lastUpdated") or "November 2026"
+          index_obj["gdpsVersion"] = index_obj.get("gdpsVersion") or "2.208 / 2.2081"
+
           entries = index_obj.get("articles", [])
+          if not isinstance(entries, list):
+              entries = []
+
           plain_desc = re.sub(r"<[^>]+>", "", summary).strip()[:120]
           new_entry = {
               "id": slug,
@@ -252,14 +192,12 @@ jobs:
               f.write("\n")
           EOF
 
+      - name: Commit and push
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data data/articles.json
+          git add data/
           if ! git diff --staged --quiet; then
             git commit -m "wiki(player): add/update ${{ inputs.article_id }}"
             git push
           fi
-
-      - name: Ready
-        run: |
-          echo "Ready! Player article published to data and registered in data/articles.json."
