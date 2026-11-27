@@ -1,0 +1,124 @@
+name: Wiki - Release Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      wiki_version:
+        description: 'Wiki version number (e.g., 26.11)'
+        required: true
+        default: '26.11'
+        type: string
+      gdps_version:
+        description: 'Supported GDPS version (e.g., 2.208 / 2.2081)'
+        required: true
+        default: '2.208 / 2.2081'
+        type: string
+      release_title:
+        description: 'Release title (e.g., Maxr3 GDPS Wiki v26.11)'
+        required: true
+        default: 'Maxr3 GDPS Wiki v26.11'
+        type: string
+      release_notes:
+        description: 'Changelog / Release notes (Markdown supported)'
+        required: true
+        default: '- Updated Wiki Engine to version 26.11\n- Synchronized JSON article database and workflows'
+        type: string
+      prerelease:
+        description: 'Mark as pre-release?'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  publish-wiki-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Entering the Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update version metadata in data/index.json
+        env:
+          WIKI_VERSION: ${{ inputs.wiki_version }}
+          GDPS_VERSION: ${{ inputs.gdps_version }}
+        run: |
+          python3 - << 'EOF'
+          import datetime
+          import json
+          import os
+
+          os.makedirs("data", exist_ok=True)
+          wiki_version = os.environ["WIKI_VERSION"].strip() or "26.11"
+          gdps_version = os.environ["GDPS_VERSION"].strip() or "2.208 / 2.2081"
+          last_updated = datetime.datetime.utcnow().strftime("%B %Y")
+
+          index_path = "data/index.json"
+          if os.path.exists(index_path):
+              try:
+                  with open(index_path, "r", encoding="utf-8") as f:
+                      index_obj = json.load(f)
+              except Exception:
+                  index_obj = {}
+          else:
+              index_obj = {}
+
+          if not isinstance(index_obj, dict):
+              index_obj = {}
+
+          index_obj["wikiVersion"] = wiki_version
+          index_obj["gdpsVersion"] = gdps_version
+          index_obj["lastUpdated"] = last_updated
+          if "articles" not in index_obj or not isinstance(index_obj["articles"], list):
+              index_obj["articles"] = []
+
+          with open(index_path, "w", encoding="utf-8") as f:
+              json.dump(index_obj, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+          EOF
+
+      - name: Commit version bump and create tag
+        env:
+          WIKI_VERSION: ${{ inputs.wiki_version }}
+        run: |
+          TAG_NAME="v${WIKI_VERSION#v}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data/
+          if ! git diff --staged --quiet; then
+            git commit -m "release: bump wiki version to ${TAG_NAME}"
+            git push
+          fi
+
+          git tag -f "${TAG_NAME}"
+          git push -f origin "${TAG_NAME}"
+          echo "TAG_NAME=${TAG_NAME}" >> "$GITHUB_ENV"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TITLE: ${{ inputs.release_title }}
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+          IS_PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          PRERELEASE_FLAG=""
+          if [ "${IS_PRERELEASE}" = "true" ]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+
+          if gh release view "${TAG_NAME}" >/dev/null 2>&1; then
+            gh release edit "${TAG_NAME}" \
+              --title "${RELEASE_TITLE}" \
+              --notes "${RELEASE_NOTES}" \
+              ${PRERELEASE_FLAG}
+          else
+            gh release create "${TAG_NAME}" \
+              --title "${RELEASE_TITLE}" \
+              --notes "${RELEASE_NOTES}" \
+              ${PRERELEASE_FLAG}
+          fi
